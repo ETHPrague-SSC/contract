@@ -41,8 +41,9 @@ contract SupplyChain {
     }
 
     event Log(string message);
-    event PackageSnapshotAdded(PackageSnapshot snapshot);
+    event PackageSnapshotAdded(PackageSnapshot snapshot, uint id);
     event AdminAdded(address);
+    event AdminRemoved(address);
 
     uint public snapshotNumber = 0;
 
@@ -55,11 +56,16 @@ contract SupplyChain {
         emit AdminAdded(msg.sender);
     }
 
+    function makeMeUser() public isAdmin {
+        admins[msg.sender] = false;
+        emit AdminRemoved(msg.sender);
+    }
+
     function addPackageSnapshot(uint parent, string memory description) public parentExists(parent) isAdmin {
         Department memory department = Department({addr: msg.sender});
         PackageSnapshot memory snapshot = createPackageSnapshot(department, parent, description, block.timestamp);
         snapshots[++snapshotNumber] = snapshot;
-        emit PackageSnapshotAdded(snapshot);
+        emit PackageSnapshotAdded(snapshot, snapshotNumber);
     }
 
     function createPackageSnapshot(Department memory handler, uint parent, string memory description, uint created) 
