@@ -4,9 +4,19 @@ pragma solidity >=0.7.0 <0.9.0;
 
 contract SupplyChain {
 
+    enum PackageSnapshotStatus {
+        PackageCreated, // 0
+        PackageMoved, // 1
+        PackageHandled, // 2
+        PackageReported, // 3
+        PackageAccepted // 4
+    }
+
     struct PackageSnapshot {
         Department handler; // handler of package
         uint parent; // index of parent package. If it is a root package, set 0
+        PackageSnapshotStatus status;
+        string name;
         string description;
         uint created; // timestamp
         bool exists;
@@ -61,15 +71,17 @@ contract SupplyChain {
         emit AdminRemoved(msg.sender);
     }
 
-    function addPackageSnapshot(uint parent, string memory description) public parentExists(parent) isAdmin {
+    function addPackageSnapshot(uint parent, PackageSnapshotStatus status, string memory name, string memory description) public parentExists(parent) isAdmin 
+    returns (uint) {
         Department memory department = Department({addr: msg.sender});
-        PackageSnapshot memory snapshot = createPackageSnapshot(department, parent, description, block.timestamp);
+        PackageSnapshot memory snapshot = createPackageSnapshot(department, parent, status, name, description, block.timestamp);
         snapshots[++snapshotNumber] = snapshot;
         emit PackageSnapshotAdded(snapshot, snapshotNumber);
+        return snapshotNumber;
     }
 
-    function createPackageSnapshot(Department memory handler, uint parent, string memory description, uint created) 
+    function createPackageSnapshot(Department memory handler, uint parent, PackageSnapshotStatus status, string memory name, string memory description, uint created) 
     internal pure returns (PackageSnapshot memory) {
-        return PackageSnapshot({handler: handler, parent: parent, description: description, created: created, exists: true});
+        return PackageSnapshot({handler: handler, parent: parent, status: status, name: name, description: description, created: created, exists: true});
     }
 }
